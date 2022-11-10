@@ -31,8 +31,7 @@ def home():
 @app.route('/data', methods = ['GET'])
 def download_data():
      name = request.args.get('dataset')
-     year = request.args.get('year')
-        
+     year = request.args.get('year')    
      file = "data/{encuesta}/{encuesta}_{year}.feather".format(encuesta = name, year = year) #/home/klaus/ine/importine/
      data = pd.read_feather(file)
      data2 = data.iloc[0:300, 0:10 ]
@@ -53,12 +52,12 @@ def download_data2(dataset, version):
 # Obtener listado de datasets con su respectivo identificador
 @app.route('/datasets', methods = ['GET'])
 def get_dataset_list():
+    
     files_dic = {name:os.listdir("data/" + name)  for name in os.listdir("data/")}
     files_dic2 = {k: [v.replace(".feather", "") for v in l if v.find("feather") != -1 ]  for k, l in files_dic.items()}
     files_dic2 = {k: [re.sub(".*_", "", v) for v in l ]  for k, l in files_dic2.items()}
     files_dic2  = {k:sorted(v) for k,v in files_dic2 .items()}
-    
-    json_data = jsonify({ "datasets": files_dic2},  allow_nan = False ) 
+    json_data = jsonify({ "datasets": files_dic2}) 
     return json_data
 
 # Obtener listado de datasets para una encuesta en específico
