@@ -45,7 +45,8 @@ def download_data2(dataset, version):
         
      file = "data/{dataset}/{dataset}_{year}.feather".format(dataset = dataset, year = version) #/home/klaus/ine/importine/
      data = pd.read_feather(file)
-     data2 = data.iloc[0:300, 0:10 ]
+     data2 = data.iloc[0:300 ]
+     data2.fillna("", inplace=True)
      json_data = jsonify({"data": data2.to_dict()})
      return json_data
 
@@ -57,7 +58,7 @@ def get_dataset_list():
     files_dic2 = {k: [re.sub(".*_", "", v) for v in l ]  for k, l in files_dic2.items()}
     files_dic2  = {k:sorted(v) for k,v in files_dic2 .items()}
     
-    json_data = jsonify({ "datasets": files_dic2})
+    json_data = jsonify({ "datasets": files_dic2},  allow_nan = False ) 
     return json_data
 
 # Obtener listado de datasets para una encuesta en específico
