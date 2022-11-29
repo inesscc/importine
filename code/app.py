@@ -1,12 +1,19 @@
 from flask import Flask
 from flask import  request
 import pandas as pd
-from flask import jsonify
+from flask import jsonify, redirect, flash, url_for, render_template, abort
 import os
 from flask_swagger_ui import get_swaggerui_blueprint
 import re
+from werkzeug.utils import secure_filename
+
 
 app = Flask(__name__)
+
+#app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024
+app.config['UPLOAD_EXTENSIONS'] = ['.csv', '.feather']
+app.config['UPLOAD_PATH'] = 'data_test'
+UPLOAD_PATHS = ["ene_test", "esi_test", "epf_personas", "epf_gastos", "enusc"]
 
 ### swagger specific ###
 SWAGGER_URL = '/swagger'
@@ -20,6 +27,51 @@ SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
 )
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 ### end swagger specific ###
+
+
+def validate_path(user_path):
+    if user_path in UPLOAD_PATHS:
+        return True
+    else:
+        return False
+
+def build_full_path(user_path, filename):
+    return "data/" + user_path + "/" + filename
+    
+
+@app.route('/upload')
+def index():
+    return render_template('index.html')
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        
+        # Validar la constraseña 
+        password = request.form.get("clave")
+        processed_text = password.upper()
+        if processed_text != "HOLA":
+            return "contraseña incorrecta", 400
+
+        # Validar la ruta 
+        path = request.form.get("folder")
+        if validate_path(path) == False:
+            return "la ruta es incorrecta", 400
+           
+        # Subir archivo
+        uploaded_file = request.files['file']
+        filename = secure_filename(uploaded_file.filename)
+        full_path = build_full_path(path, filename)
+
+        if filename != '':
+            file_ext = os.path.splitext(filename)[1]
+            if file_ext not in app.config['UPLOAD_EXTENSIONS']:
+                #abort(400)
+                return "formato no aceptado", 400
+            uploaded_file.save(full_path)
+        return redirect(url_for('index'))
+    return render_template('index.html')
+
 
 
 
@@ -72,6 +124,9 @@ def get_specific_dataset_list(dataset):
     json_data = jsonify({ "datasets": files_dic2})
     return json_data
 
+# Comprobar que el archivo tenga la extensión permitida
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
