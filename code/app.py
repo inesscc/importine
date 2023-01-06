@@ -6,6 +6,8 @@ import os
 from flask_swagger_ui import get_swaggerui_blueprint
 import re
 from werkzeug.utils import secure_filename
+from fastapi import FastAPI
+
 
 
 app = Flask(__name__)
