@@ -1,13 +1,35 @@
 
 from fastapi import FastAPI
+import os
+import re
 
 app = FastAPI()
 
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello World   aaaa asdfsdfsdf"}
 
+
+
+# Obtener listado de datasets con su respectivo identificador
+@app.get("/datasets") 
+async def get_dataset_list():     
+     files_dic = {name:os.listdir("data/" + name)  for name in os.listdir("data/")}
+     files_dic2 = {k: [v.replace(".feather", "") for v in l if v.find("feather") != -1 ]  for k, l in files_dic.items()}
+     files_dic2 = {k: [re.sub(".*_", "", v) for v in l ]  for k, l in files_dic2.items()}
+     files_dic2  = {k:sorted(v) for k,v in files_dic2 .items()}
+     return files_dic2
+
+
+@app.get('/datasets/{dataset}')
+def get_specific_dataset_list(dataset):
+     path = "data/{dataset}/".format(dataset = dataset)
+     files_dic = {dataset:os.listdir(path)}
+     files_dic2 = {k: [v.replace(".feather", "") for v in l if v.find("feather") != -1  ]  for k, l in files_dic.items()}
+     files_dic2 = {k: [re.sub(".*_", "", v) for v in l ]  for k, l in files_dic2.items()}
+     files_dic2  = {k:sorted(v) for k,v in files_dic2 .items()}     
+     return files_dic2
 
 
 # =============================================================================
